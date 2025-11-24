@@ -20,7 +20,8 @@
 
 import os.path as osp
 import numpy as np
-
+import matplotlib.cm as cm
+from matplotlib import colors
 
 class Output(object):
     """ Add plot and display functionality to the classifiers classes.
@@ -32,23 +33,27 @@ class Output(object):
     def cm_dispatch(self, name):
         from pysptools.classification._cm import datad
         return datad[name]
-    
+
     def _custom_listed_color_map(self, name, N, firstBlack=False):
-        """ add the black color in front of 'name' color """
-        import matplotlib.cm as cm
-        from matplotlib import colors
+        """Add black color in front of a colormap specified by 'name'."""
+
+        # Get the colormap
         if name == 'jet':
-            mp = cm.datad[name]
+            base_cmap = cm.get_cmap(name, N - 1)
         else:
-            mp = self.cm_dispatch(name)            
-        new_mp1 = {'blue': colors.makeMappingArray(N-1, mp['blue']),
-                  'green': colors.makeMappingArray(N-1, mp['green']),
-                  'red': colors.makeMappingArray(N-1, mp['red'])}
-        new_mp2 = []
-        new_mp2.extend(zip(new_mp1['red'], new_mp1['green'], new_mp1['blue']))
-        if firstBlack == True:
-            new_mp2 = [(0,0,0)]+new_mp2 # the black color
-        return colors.ListedColormap(new_mp2, N=N-1), new_mp2
+            base_cmap = cm.get_cmap(name, N - 1)  # Replace with your custom dispatch if needed
+
+        # Sample the colormap
+        color_list = [base_cmap(i / (N - 2))[:3] for i in range(N - 1)]  # RGB only
+
+        # Optionally prepend black
+        if firstBlack:
+            color_list = [(0, 0, 0)] + color_list
+
+        # Create ListedColormap
+        listed_cmap = colors.ListedColormap(color_list, N=N)
+
+        return listed_cmap, color_list
 
     def plot(self, img, n_classes, path=None, labels=None, mask=None, interpolation='none', colorMap='jet', firstBlack=False, suffix=''):
         """
@@ -111,6 +116,7 @@ class Output(object):
         if firstBlack == False: n_classes = n_classes - 1
         bounds = range(n_classes+2)
         color, dummy = self._custom_listed_color_map(colorMap, len(bounds)+1, firstBlack=firstBlack)
+        color = cm.get_cmap('jet', np.max(img)+1)
         norm = colors.BoundaryNorm(bounds, color.N)
         fig0, ax0 = plt.subplots()
         plot = ax0.imshow(img, cmap=color, interpolation=interpolation, norm=norm)
