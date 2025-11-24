@@ -70,8 +70,12 @@ class KMeans(object):
         h, w, numBands = M.shape
         self.n_clusters = n_clusters
         X = np.reshape(M, (w*h, numBands))
-        clf = cluster.KMeans(n_clusters=n_clusters, n_jobs=n_jobs, init=init)
-        cls = clf.fit_predict(X)
+        clf = cluster.KMeans(n_clusters=n_clusters, init=init)
+
+        cls = np.full((w*h), 0, dtype=int)
+        idx_ok = np.any(np.isfinite(X) & (X != 0), axis=1)
+        cls[idx_ok] = 1 + clf.fit_predict(X[idx_ok, :])
+
         self.cluster = np.reshape(cls, (h, w))
         return self.cluster
 
