@@ -111,6 +111,7 @@ class HfcVd(object):
         h, w, numBands = M.shape
         Mr = np.reshape(M, (w*h, numBands))
         if noise_whitening == True:
-            Mr = ns.whiten(Mr)
+            noise_cov = ns.estimate_noise_covariance(M)
+            Mr = ns.whiten(Mr, noise_cov)
         self.vd = vd.HfcVd(Mr, far)
         return self.vd

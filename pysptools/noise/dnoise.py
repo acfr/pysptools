@@ -25,7 +25,31 @@ import os.path as osp
 import pysptools.util as util
 
 
-def whiten(M):
+def estimate_noise_covariance(M, dm=1):
+    if len(M.shape) == 2:
+        idx_non_zero = np.any(np.isfinite(M) & (M != 0.), axis=1)
+        M = M[idx_non_zero, :]
+        noise = (M[dm:, :] - M[:-dm, :]) / np.sqrt(2.)
+
+    elif len(M.shape) == 3:
+        idx_non_zero = np.any(np.isfinite(M) & (M != 0.), axis=2)
+        idx_ok = idx_non_zero[dm:, :] & idx_non_zero[:-dm, :]
+        noise = (M[dm:, :, :] - M[:-dm, :, :]) / np.sqrt(2.)
+        noise = noise[idx_ok]
+
+    else:
+        raise ValueError(f'unexpected number of dimensions {M.shape}')
+
+    noise_mag = np.sqrt(np.sum(noise * noise, axis=1))
+    noise_med = np.median(noise_mag)
+    rayleigh_std = noise_med / np.sqrt(2. * np.log(2.))
+    cdf98 = np.sqrt(-2. * np.log(1. - 0.98)) * rayleigh_std
+    idx_outliers = noise_mag > cdf98
+    noise = noise[~idx_outliers, :]
+    return np.cov(noise, rowvar=False)
+
+
+def whiten(M, sigma, return_inverse=False):
     """
     Whitens a HSI cube. Use the noise covariance matrix to decorrelate
     and rescale the noise in the data (noise whitening).
@@ -35,6 +59,8 @@ def whiten(M):
     Parameters:
         M: `numpy array`
             2d matrix of HSI data (N x p).
+        sigma: noise covaraince (p x p).
+
 
     Returns: `numpy array`
         Whitened HSI data (N x p).
@@ -44,9 +70,13 @@ def whiten(M):
         Tiny Images, MSc thesis, University of Toronto, 2009.
         See Appendix A.
     """
-    sigma = util.cov(M)
     U,S,V = np.linalg.svd(sigma)
     S_1_2 = S**(-0.5)
-    S = np.diag(S_1_2.T)
-    Aw = np.dot(V, np.dot(S, V.T))
-    return np.dot(M, Aw)
+    Aw = U @ np.diag(S_1_2) @ V
+    Mw = M @ Aw
+    if return_inverse:
+        Awinv = U @ np.diag(1./S_1_2) @ V
+        return Mw, Awinv
+
+    else:
+        return Mw

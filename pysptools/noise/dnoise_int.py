@@ -35,7 +35,7 @@ class SavitzkyGolay(object):
         self.denoised = None
         self.dbands = None
 
-    @DenoiseSpectraInputValidation('SavitzkyGolay')
+    #@DenoiseSpectraInputValidation('SavitzkyGolay')
     def denoise_spectra(self, M, window_size, order, deriv=0, rate=1):
         """
         Apply the Savitzky Golay filter on each spectrum.
@@ -67,10 +67,12 @@ class SavitzkyGolay(object):
             The scipy Cookbook, SavitzkyGolay section. This class is not under the
             copyright of this file.
         """
-        h, w, numBands = M.shape
-        M = np.reshape(M, (w*h, numBands))
+        original_shape = M.shape
+        if len(original_shape) == 3:
+            h, w, numBands = M.shape
+            M = np.reshape(M, (w*h, numBands))
         self.denoised = self._denoise1d(M, window_size, order, deriv, rate)
-        self.denoised = np.reshape(self.denoised, (h, w, numBands))
+        self.denoised = np.reshape(self.denoised, original_shape)
         return self.denoised
 
     @DenoiseBandsInputValidation('SavitzkyGolay')
@@ -101,15 +103,18 @@ class SavitzkyGolay(object):
             copyright of this file.
         """
         h, w, numBands = M.shape
-        self.dbands = np.ones((h, w, numBands), dtype=np.float)
+        self.dbands = np.ones((h, w, numBands), dtype=float)
         for i in range(numBands):
-            self.dbands[:,:,i] = self._denoise2d(M[:,:,i], window_size, order, derivative)
+            if np.any(np.isfinite(M[:, :, i]) & (M[:, :, i] != 0.)):
+                self.dbands[:,:,i] = self._denoise2d(M[:,:,i], window_size, order, derivative)
+            else:
+                self.dbands[:, :, i] = M[:, :, i]
         return self.dbands
 
     def _denoise1d(self, M, window_size, order, deriv, rate):
         try:
-            window_size = np.abs(np.int(window_size))
-            order = np.abs(np.int(order))
+            window_size = np.abs(np.int64(window_size))
+            order = np.abs(np.int64(order))
         except ValueError as msg:
             raise ValueError("in SavitzkyGolay.denoise_spectra(), window_size and order have to be of type int")
         if window_size % 2 != 1 or window_size < 1:
@@ -120,13 +125,13 @@ class SavitzkyGolay(object):
         order_range = range(order+1)
         half_window = (window_size -1) // 2
         # precompute coefficients
-        b = np.mat([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
+        b = np.asmatrix([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
         m = np.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)
         # pad the signal at the extremes with
         # values taken from the signal itself
         N, p = M.shape
-        dn = np.ones((N,p), dtype=np.float)
-        long_signal = np.ndarray(p+2, dtype=np.float)
+        dn = np.ones((N,p), dtype=float)
+        long_signal = np.ndarray(p+2, dtype=float)
         for i in range(N):
             y = M[i]
             firstvals = y[0] - np.abs( y[1:half_window+1][::-1] - y[0] )
@@ -349,8 +354,8 @@ class Whiten(object):
     def __init__(self):
         self.dM = None
 
-    @ApplyInputValidation('Whiten')
-    def apply(self, M):
+    #@ApplyInputValidation('Whiten')
+    def apply(self, M, noise_cov):
         """
         Whitens a HSI cube. Use the noise covariance matrix to decorrelate
         and rescale the noise in the data (noise whitening).
@@ -364,10 +369,16 @@ class Whiten(object):
         Returns: `numpy array`
               A whitened HSI cube (m x n x p).
         """
-        h, w, numBands = M.shape
-        M = np.reshape(M, (w*h, numBands))
-        dM = dnoise.whiten(M)
-        self.dM = np.reshape(dM, (h, w, numBands))
+        original_shape = [x for x in M.shape]
+        if len(original_shape) == 3:
+            h, w, numBands = original_shape
+            M = np.reshape(M, (w*h, numBands))
+
+        if noise_cov is None:
+            noise_cov = dnoise.estimate_noise_covariance(M)
+
+        dM, self.Awinv = dnoise.whiten(M, noise_cov, return_inverse=True)
+        self.dM = np.reshape(dM, original_shape)
         return self.dM
 
     def get(self):
@@ -386,8 +397,8 @@ class MNF(object):
         self.transform = None
         self.wdata = None # temp
 
-    @ApplyInputValidation('MNF')
-    def apply(self, M):
+    #@ApplyInputValidation('MNF')
+    def apply(self, M, noise_cov=None):
         """
         A linear transformation that consists of a noise whitening step
         and one PCA rotation.
@@ -410,18 +421,25 @@ class MNF(object):
           Components Analysis," IEEE TGRS, Vol 36, No 5, September 1999.
         """
         from sklearn.decomposition import PCA
-        w = Whiten()
-        wdata = w.apply(M)
+        self.w = Whiten()
+        wdata = self.w.apply(M, noise_cov)
         self.wdata = wdata #temp
-        h, w, numBands = wdata.shape
-        X = np.reshape(wdata, (w*h, numBands))
+        if len(wdata.shape) == 3:
+            h, w, numBands = wdata.shape
+            X = np.reshape(wdata, (w*h, numBands))
+        else:
+            X = wdata
+
         self.transform = PCA()
-        mnf = self.transform.fit_transform(X)
-        self.mnf = np.reshape(mnf, (h, w, numBands))
+        self.mnf = self.transform.fit_transform(X)
+
+        if len(wdata.shape) == 3:
+            self.mnf = np.reshape(self.mnf, (h, w, numBands))
+
         return self.mnf
 
-    @XInputValidation('MNF')
-    def inverse_transform(self, X):
+    #@XInputValidation('MNF')
+    def inverse_transform(self, X, inv_whiten=True):
         """
         Inverse the PCA rotation step. The cube stay
         whitened. Usefull if you want to denoise noisy
@@ -433,10 +451,17 @@ class MNF(object):
         Return: `numpy array`
             A inverted cube (m x n x p).
         """
-        h, w, numBands = X.shape
-        X = np.reshape(X, (w*h, numBands))
+        original_shape = [x for x in X.shape]
+        if len(original_shape) == 3:
+            h, w, numBands = X.shape
+            X = np.reshape(X, (w*h, numBands))
         M = self.transform.inverse_transform(X)
-        M = np.reshape(M, (h, w, numBands))
+        if inv_whiten:
+            M = M @ self.w.Awinv
+
+        if len(original_shape) == 3:
+            M = np.reshape(M, original_shape)
+
         return M
 
     def get_components(self, n):
