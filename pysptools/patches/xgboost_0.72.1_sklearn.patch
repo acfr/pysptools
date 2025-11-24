@@ -1,0 +1,14 @@
+--- sklearn.py	2018-09-05 09:16:48.961591191 -0400
++++ sklearn_pysptools.py	2018-08-10 10:45:09.321565000 -0400
+@@ -628,6 +628,11 @@
+ 
+         return evals_result
+ 
++    # Patch pysptools
++    def set_le(self, y):
++        self._le = XGBLabelEncoder().fit(y)
++    # end patch pysptools
++
+ 
+ class XGBRegressor(XGBModel, XGBRegressorBase):
+     # pylint: disable=missing-docstring

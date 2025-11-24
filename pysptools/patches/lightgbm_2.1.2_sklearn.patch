@@ -1,0 +1,30 @@
+--- sklearn.py	2018-09-04 10:21:18.334414043 -0400
++++ sklearn_pysptools.py	2018-08-10 10:31:43.721450000 -0400
+@@ -612,6 +612,11 @@
+             raise LGBMNotFittedError('No feature_importances found. Need to call fit beforehand.')
+         return self.booster_.feature_importance()
+ 
++    # Patch pysptools
++    def set_n_features_(self, n):
++        self._n_features = n
++    # end patch pysptools
++
+ 
+ class LGBMRegressor(LGBMModel, _LGBMRegressorBase):
+     """LightGBM regressor."""
+@@ -759,6 +764,15 @@
+             raise LGBMNotFittedError('No classes found. Need to call fit beforehand.')
+         return self._n_classes
+ 
++    # Patch pysptools
++    def set_le(self, y):
++        self._le = _LGBMLabelEncoder().fit(y)
++        self._classes = self._le.classes_
++        self._n_classes = len(self._classes)
++
++    def set_n_features_(self, n):
++        super(LGBMClassifier, self).set_n_features_(n)
++    # end patch pysptools
+ 
+ class LGBMRanker(LGBMModel):
+     """LightGBM ranker."""
