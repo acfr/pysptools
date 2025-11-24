@@ -49,7 +49,7 @@ def _multiple_values_min(data, threshold):
     the data y axis.
     A new threshold value is used for each value of y.
     """
-    data_min = np.zeros((data.shape[0], data.shape[1]), dtype=np.float)
+    data_min = np.zeros((data.shape[0], data.shape[1]), dtype=float)
     for i in range(data.shape[1]):
         amin = np.min(data[:,i])
         amax = np.max(data[:,i])
@@ -86,7 +86,7 @@ def _multiple_values_max(corr, threshold):
     the corr y axis.
     A new threshold value is used for each value of y.
     """
-    corr_max = np.zeros((corr.shape[0], corr.shape[1]), dtype=np.float)
+    corr_max = np.zeros((corr.shape[0], corr.shape[1]), dtype=float)
     for i in range(corr.shape[1]):
         cmin = np.min(corr[:,i])
         cmax = np.max(corr[:,i])
@@ -140,7 +140,7 @@ def SAM_classifier(M, E, threshold):
     TNA = norm_array(M)
     RNA = norm_array(E)
     sum_T_R = np.dot(E, M.T).T
-    mul_T_R = np.ndarray((TNA.shape[0], RNA.shape[0]), dtype=np.float)
+    mul_T_R = np.ndarray((TNA.shape[0], RNA.shape[0]), dtype=float)
     for i in range(TNA.shape[0]):
         mul_T_R[i] = np.multiply(TNA[i],RNA)
     # read above for _round_threshold
@@ -180,7 +180,7 @@ def SID_classifier(M, E, threshold):
     N = E.shape[0]
     p = prob_vector_array(M)
     q = prob_vector_array(E)
-    sid = np.ndarray((mn, N), dtype=np.float)
+    sid = np.ndarray((mn, N), dtype=float)
     for i in range(mn):
         pq = q[0:,:] * np.log(q[0:,:] / p[i,:])
         pp = p[i,:] * np.log(p[i,:] / q[0:,:])
@@ -229,7 +229,7 @@ def NormXCorr_classifier(M, E, threshold):
     E_minus_mean = signal_minus_mean_array(E)
     M_std = tstd_array(M)
     M_minus_mean = signal_minus_mean_array(M)
-    corr = np.ndarray((mn, N), dtype=np.float)
+    corr = np.ndarray((mn, N), dtype=float)
     for i in range(mn):
         mean_prod = M_minus_mean[i,:] * E_minus_mean[0:,:]
         std_prod = M_std[i] * E_std[0:]

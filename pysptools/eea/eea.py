@@ -87,7 +87,7 @@ def ATGP(data, q):
     E[0] = data[idx] # the first endmember selected
     # Generate the identity matrix.
     I = np.eye(nvariables)
-    IDX = np.zeros(q, dtype=np.int)
+    IDX = np.zeros(q, dtype=np.int64)
 
     IDX[0] = idx
 

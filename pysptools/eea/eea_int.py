@@ -184,7 +184,7 @@ def _document(cls):
 
 def _compress(vec, mask):
     n = np.sum(mask)
-    cmp = np.ndarray((n, vec.shape[1]), dtype=np.float)
+    cmp = np.ndarray((n, vec.shape[1]), dtype=float)
     i = 0
     for j in range(mask.shape[0]):
         if mask[j] == 1:

@@ -103,7 +103,7 @@ def NFINDR(data, q, transform=None, maxit=None, ATGP_init=False):
         for k in range(q):
             for i in range(nsamples):
                 TestMatrix[1:q, k] = transform[i]
-                volume = math.fabs(sp.linalg._flinalg.sdet_c(TestMatrix)[0])
+                volume = math.fabs(sp.linalg.det(TestMatrix))
                 if volume > actualVolume:
                     actualVolume = volume
                     IDX[k] = i

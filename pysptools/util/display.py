@@ -88,7 +88,7 @@ def display_linear_stretch(M, R, G, B, suffix=None):
 
 def _linear_stretch(data, R, G, B):
     """ Do a linear stretch. """
-    img = np.zeros((data.shape[0],data.shape[1],3), dtype=np.float)
+    img = np.zeros((data.shape[0],data.shape[1],3), dtype=float)
     for i in range(data.shape[0]):
         for j in range(data.shape[1]):
             img[i,j] = data[i,j,R], data[i,j,G], data[i,j,B]

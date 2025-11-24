@@ -135,7 +135,7 @@ def _document(cls):
 
 def _compress(vec, mask):
     n = np.sum(mask)
-    cmp = np.ndarray((n, vec.shape[1]), dtype=np.float)
+    cmp = np.ndarray((n, vec.shape[1]), dtype=float)
     i = 0
     for j in range(mask.shape[0]):
         if mask[j] == 1:
@@ -145,7 +145,7 @@ def _compress(vec, mask):
 
 
 def _expand(amap, mask, l):
-    exp = np.zeros(l, dtype=np.float)
+    exp = np.zeros(l, dtype=float)
     i = 0
     for j in range(mask.shape[0]):
         if mask[j] == 1:
@@ -155,7 +155,7 @@ def _expand(amap, mask, l):
 
 
 def _expand2(amap, mask, l, q):
-    exp = np.zeros((l,q), dtype=np.float)
+    exp = np.zeros((l,q), dtype=float)
     i = 0
     for j in range(mask.shape[0]):
         if mask[j] == 1:
@@ -217,7 +217,7 @@ class SAM(object):
 
     def _class_single_pixel(self, M, E, threshold):
         import pysptools.distance as dst
-        angles = np.ndarray((M.shape[0], 1), dtype=np.float)
+        angles = np.ndarray((M.shape[0], 1), dtype=float)
         for i in range(M.shape[0]):
             angles[i] = dst.SAM(M[i], E)
         cmap = _single_value_min(angles, threshold) * angles
@@ -326,7 +326,7 @@ class SID(object):
 
     def _class_single_pixel(self, M, E, threshold):
         import pysptools.distance as dst
-        sid = np.ndarray((M.shape[0], 1), dtype=np.float)
+        sid = np.ndarray((M.shape[0], 1), dtype=float)
         for i in range(M.shape[0]):
             sid[i] = dst.SID(M[i], E)
         cmap = _single_value_min(sid, threshold) * sid
@@ -426,7 +426,7 @@ class NormXCorr(object):
 
     def _class_single_pixel(self, M, E, threshold):
         import pysptools.distance as dst
-        corr = np.ndarray((M.shape[0], 1), dtype=np.float)
+        corr = np.ndarray((M.shape[0], 1), dtype=float)
         for i in range(M.shape[0]):
             corr[i] = dst.NormXCorr(M[i], E)
         cmap = _single_value_max(corr, threshold) * corr
@@ -549,7 +549,7 @@ class AbundanceClassification(object):
         the y axis.
         A new threshold value is used for each value of y.
         """
-        max_val = np.zeros((maps.shape[0], maps.shape[1]), dtype=np.float)
+        max_val = np.zeros((maps.shape[0], maps.shape[1]), dtype=float)
         for i in range(maps.shape[1]):
             cmin = np.min(maps[:,i])
             cmax = np.max(maps[:,i])

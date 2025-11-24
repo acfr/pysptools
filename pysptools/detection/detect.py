@@ -167,7 +167,7 @@ def GLRT(M, t):
     t = t - u;
 
     R = lin.inv(np.cov(M.T))
-    results = np.zeros(N, dtype=np.float)
+    results = np.zeros(N, dtype=float)
 
     t_R_t_dot = np.dot(t, np.dot(R, t.T))
     for k in range(N):
@@ -203,9 +203,9 @@ def OSP(M, E, t):
         IEEE TGRS. Volume 41. Number 6. June 2003.
     """
     N, p = M.shape
-    P_U = np.eye(p, dtype=np.float) - np.dot(E.T, lin.pinv(E.T))
+    P_U = np.eye(p, dtype=float) - np.dot(E.T, lin.pinv(E.T))
     tmp = np.dot(t.T, np.dot(P_U, t))
-    nu = np.zeros(N, dtype=np.float)
+    nu = np.zeros(N, dtype=float)
     for k in range(N):
         nu[k] = np.dot(t.T, np.dot(P_U, M[k])) / tmp
     return nu

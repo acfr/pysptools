@@ -42,7 +42,7 @@ class ROIs(object):
         self._n_clusters = 0
         # mask: a value of zero is X, and a value of 1,2... is y, 1 for the first
         # roi, 2 for the next roi ...
-        self.mask = np.zeros((x, y), dtype=np.int)
+        self.mask = np.zeros((x, y), dtype=np.int32)
 
     def add(self, id, *rois):
         """

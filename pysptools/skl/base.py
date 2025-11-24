@@ -37,7 +37,7 @@ class HyperBaseClassifier(object):
         X_cube = self._get_X(M)
 
         # a value of 0 for 'y' represents the background cluster
-        y_cube = np.zeros(X_cube.shape[0], dtype=np.int)
+        y_cube = np.zeros(X_cube.shape[0], dtype=np.int64)
         X = np.array(X_cube)
         y = np.array(y_cube)
 
@@ -47,7 +47,7 @@ class HyperBaseClassifier(object):
             i += 1
             for r in rois:
                 X_roi = self._crop(M, i, r)
-                y_roi = np.zeros(X_roi.shape[0], dtype=np.int) + i
+                y_roi = np.zeros(X_roi.shape[0], dtype=np.int64) + i
                 X = np.concatenate((X, X_roi))
                 y = np.concatenate((y, y_roi))
         return X, y
@@ -61,7 +61,7 @@ class HyperBaseClassifier(object):
             return self._convert2D(M[bbox[0]:bbox[2],bbox[1]:bbox[3],:])
         if 'poly' in r or 'raw' in r:
             masked = np.sum(self.mask == roi_id)
-            linear_cube = np.ndarray((masked, M.shape[2]), dtype=np.float)
+            linear_cube = np.ndarray((masked, M.shape[2]), dtype=float)
             i = 0
             for x in range(M.shape[0]):
                 for y in range(M.shape[1]):
@@ -81,7 +81,7 @@ class HyperBaseClassifier(object):
     def _get_X(self, M):
         masked = np.sum(self.mask > 0)
         not_masked = M.shape[0] * M.shape[1] - masked
-        linear_cube = np.ndarray((not_masked, M.shape[2]), dtype=np.float)
+        linear_cube = np.ndarray((not_masked, M.shape[2]), dtype=float)
         i = 0
         for x in range(M.shape[0]):
             for y in range(M.shape[1]):
@@ -113,7 +113,7 @@ class HyperScaledBaseClassifier(HyperBaseClassifier):
         X_cube = self._get_X(M)
 
         # a value of 0 for 'y' represents the background cluster
-        y_cube = np.zeros(X_cube.shape[0], dtype=np.int)
+        y_cube = np.zeros(X_cube.shape[0], dtype=np.int64)
         X = np.array(X_cube)
         y = np.array(y_cube)
 
@@ -123,7 +123,7 @@ class HyperScaledBaseClassifier(HyperBaseClassifier):
             i += 1
             for r in rois:
                 X_roi = self._crop(M, i, r)
-                y_roi = np.zeros(X_roi.shape[0], dtype=np.int) + i
+                y_roi = np.zeros(X_roi.shape[0], dtype=np.int64) + i
                 X = np.concatenate((X, X_roi))
                 y = np.concatenate((y, y_roi))
         X_scaled = preprocessing.scale(X)

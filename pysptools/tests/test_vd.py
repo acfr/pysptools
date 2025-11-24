@@ -44,7 +44,7 @@ def get_random_n_endmembers(fname, file_type, n):
     dim = lib.get_dim()
     idx = random.sample(list(range(dim)), n)
     # 224 is the number of bands
-    U = np.zeros((224, n), dtype=np.float)
+    U = np.zeros((224, n), dtype=float)
     for i, j in enumerate(idx):
         U[:,i] = lib.get(j)
     # the USGS library sometimes have very small numbers that create numeric
@@ -66,7 +66,7 @@ def dirichlet_rnd(A, dim):
     """
     N = A.shape[0]
 
-    x = np.zeros((dim, N), dtype=np.float)
+    x = np.zeros((dim, N), dtype=float)
     for i in range(N):
         x[:,i] = scipy.stats.gamma.rvs(A[i], scale=1, size=dim)
 
