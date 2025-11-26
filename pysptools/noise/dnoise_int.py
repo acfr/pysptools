@@ -431,7 +431,10 @@ class MNF(object):
             X = wdata
 
         self.transform = PCA()
-        self.mnf = self.transform.fit_transform(X)
+
+        idx_ok = np.any(np.isfinite(X) & (X != 0.), axis=1)
+        self.mnf = np.full(X.shape, 0., dtype=float)
+        self.mnf[idx_ok, :] = self.transform.fit_transform(X[idx_ok, :])
 
         if len(wdata.shape) == 3:
             self.mnf = np.reshape(self.mnf, (h, w, numBands))
